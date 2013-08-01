@@ -1,5 +1,13 @@
 class MoviesController < ApplicationController
 
+  attr_accessor :all_ratings
+  attr_reader :selected_ratings
+
+  def initialize(*args, &block)
+    super
+    @all_ratings = ['G','PG','PG-13','R']
+  end
+
   def show
     id = params[:id] # retrieve movie ID from URI route
     @movie = Movie.find(id) # look up movie by unique ID
@@ -7,12 +15,30 @@ class MoviesController < ApplicationController
   end
 
   def index
+    puts "index #{params}"
+    puts "before #{@selected_ratings}"
+   if !session[:stored_selections].present?
+     @selected_ratings = @all_ratings
+   end
+   @selected_ratings = (params[:ratings].present? ? params[:ratings].keys : session[:stored_selections])
+
+   session[:stored_selections] = @selected_ratings
+    puts "after #{@selected_ratings}"
+   all_movies = Movie.all
    if params[:sort]
      @current_item = params[:sort] == "title" ? "title_header" : "release_date_header"
-     @movies = Movie.order(params[:sort])
-   else
-      @movies = Movie.all
+     all_movies = Movie.order(params[:sort])
    end
+     temp_movies = Array.new
+     all_movies.each do | movie |
+        if @selected_ratings.include?(movie.rating)
+          temp_movies.push movie
+          puts "saving #{movie}"
+        end
+        @movies = temp_movies
+     end
+
+   # @movies = Movie.where(:rating => params[:ratings].keys) if params[:ratings].present?
   end
 
   def new
