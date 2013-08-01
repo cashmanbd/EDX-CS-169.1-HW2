@@ -15,13 +15,10 @@ class MoviesController < ApplicationController
   end
 
   def index
-    puts "index #{params}"
-    puts "before #{@selected_ratings}"
    if !session[:stored_selections].present?
-     @selected_ratings = @all_ratings
+     session[:stored_selections] = @all_ratings
    end
    @selected_ratings = (params[:ratings].present? ? params[:ratings].keys : session[:stored_selections])
-
    session[:stored_selections] = @selected_ratings
     puts "after #{@selected_ratings}"
    all_movies = Movie.all
